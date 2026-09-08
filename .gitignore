@@ -1,0 +1,21 @@
+# Dependencias (se descargan con "npm install", nunca se suben a git)
+/node_modules
+
+# Build de Next.js
+/.next/
+/out/
+
+# Variables de entorno con datos sensibles (cadena de MongoDB, secreto JWT)
+.env
+.env*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Archivos del sistema operativo / editor
+.DS_Store
+*.swp
+.vscode/
+.idea/
