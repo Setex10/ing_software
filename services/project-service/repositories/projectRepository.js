@@ -1,71 +1,51 @@
 // services/project-service/repositories/projectRepository.js
 //
-// Capa de acceso a datos: única capa que habla directamente con MongoDB
-// para la colección "projects". No contiene reglas de negocio.
+// Capa de acceso a datos: única capa que toca el almacenamiento local
+// (lib/localStore.js) para la colección "projects". No contiene reglas de
+// negocio.
 
-import clientPromise from "@/lib/mongodb";
-
-const COLLECTION = "projects";
-
-async function getDb() {
-  const client = await clientPromise;
-  return client.db(); // usa la DB por defecto de la connection string, igual que el módulo de auth
-}
+import { db, generarId } from "@/lib/localStore";
 
 /**
  * Inserta un nuevo proyecto ya validado y con creadorId confiable (nunca del cliente).
- * @param {{ nombre: string, descripcion: string, fechaLimite: Date, creadorId: ObjectId }} proyecto
+ * @param {{ nombre: string, descripcion: string, fechaLimite: Date, creadorId: string }} proyecto
  * @returns {Promise<object>} el documento insertado (con _id)
  */
 export async function crearProyecto({ nombre, descripcion, fechaLimite, creadorId }) {
-  const db = await getDb();
   const now = new Date();
 
-  const doc = {
+  const proyecto = {
+    _id: generarId(),
     nombre,
     descripcion,
     fechaLimite,
     creadorId,
-    integrantes: [creadorId],
+    integrantes: [],
     creadoEn: now,
     actualizadoEn: now,
   };
 
-  const result = await db.collection(COLLECTION).insertOne(doc);
+  db.projects.push(proyecto);
 
-  return { _id: result.insertedId, ...doc };
+  return proyecto;
 }
 
 /**
- * Lista los proyectos donde el usuario es creador o integrante,
- * ordenados por fecha límite ascendente (la más próxima primero).
- * @param {ObjectId} userId
+ * Lista los proyectos creados por el usuario, ordenados por fecha límite
+ * ascendente (la más próxima primero).
+ * @param {string} userId
  * @returns {Promise<object[]>}
  */
 export async function listarProyectosPorUsuario(userId) {
-  const db = await getDb();
-
-  return db
-    .collection(COLLECTION)
-    .find({
-      $or: [{ creadorId: userId }, { integrantes: userId }],
-    })
-    .sort({ fechaLimite: 1 })
-    .toArray();
+  return db.projects
+    .filter((proyecto) => proyecto.creadorId === userId)
+    .sort((a, b) => new Date(a.fechaLimite) - new Date(b.fechaLimite));
 }
 
 /**
- * Obtiene un proyecto por su id. Útil para el cálculo de avance y para
- * futuras validaciones (ej. módulo de Integrantes/Tareas).
- * @param {ObjectId} proyectoId
+ * Obtiene un proyecto por su id.
+ * @param {string} proyectoId
  */
 export async function obtenerProyectoPorId(proyectoId) {
-  const db = await getDb();
-  return db.collection(COLLECTION).findOne({ _id: proyectoId });
-}
-
-export async function getDbHandle() {
-  // Expuesto para que la capa de services pueda consultar otras colecciones
-  // (ej. "tasks" para el cálculo de avance) sin duplicar la conexión.
-  return getDb();
+  return db.projects.find((proyecto) => proyecto._id === proyectoId) || null;
 }
