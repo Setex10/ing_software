@@ -1,26 +1,14 @@
-import Link from "next/link";
+// app/page.js
+//
+// Punto de entrada: redirige según haya o no una sesión simulada válida.
+
+import { cookies } from "next/headers";
+import { redirect } from "next/navigation";
+import { verificarToken, SESSION_COOKIE_NAME } from "@/lib/auth";
 
 export default function HomePage() {
-  return (
-    <main
-      style={{
-        minHeight: "100vh",
-        display: "flex",
-        flexDirection: "column",
-        alignItems: "center",
-        justifyContent: "center",
-        gap: 16,
-        textAlign: "center",
-        padding: 24,
-      }}
-    >
-      <h1>Sistema de Gestión de Proyectos y Tareas</h1>
-      <p>
-        Esta página de inicio es un punto de partida temporal. Cuando agregues
-        el módulo de autenticación (login), reemplázala o redirige aquí a{" "}
-        <code>/login</code>.
-      </p>
-      <Link href="/proyectos">Ir a Mis proyectos</Link>
-    </main>
-  );
+  const token = cookies().get(SESSION_COOKIE_NAME)?.value;
+  const usuario = token ? verificarToken(token) : null;
+
+  redirect(usuario ? "/proyectos" : "/login");
 }

@@ -5,7 +5,8 @@
 /.next/
 /out/
 
-# Variables de entorno con datos sensibles (cadena de MongoDB, secreto JWT)
+# Variables de entorno (el proyecto no las necesita para correr, pero se
+# ignoran por si se agregan en el futuro)
 .env
 .env*.local
 

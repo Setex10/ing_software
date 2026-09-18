@@ -57,6 +57,22 @@
   background-color: #2d47cc;
 }
 
+.secondaryButton {
+  display: inline-block;
+  background: none;
+  border: 1px solid #d7dae3;
+  color: #555b6e;
+  text-decoration: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.secondaryButton:hover {
+  background-color: #f5f6fa;
+}
+
 .info {
   color: #555b6e;
   font-size: 14px;

@@ -8,6 +8,7 @@ import { getAuthUser } from "@/lib/auth";
 import {
   crearProyectoParaUsuario,
   listarProyectosDeUsuario,
+  obtenerProyectoDeUsuario,
 } from "../services/projectService.js";
 
 /**
@@ -62,4 +63,26 @@ export async function handleListProjects(request) {
   }
 
   return NextResponse.json({ proyectos: result.proyectos }, { status: 200 });
+}
+
+/**
+ * GET /api/projects/:id
+ */
+export async function handleGetProject(request, proyectoId) {
+  const user = getAuthUser(request);
+
+  if (!user) {
+    return NextResponse.json(
+      { error: "No autenticado." },
+      { status: 401 }
+    );
+  }
+
+  const result = await obtenerProyectoDeUsuario(user.userId, proyectoId);
+
+  if (!result.ok) {
+    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
+  }
+
+  return NextResponse.json({ proyecto: result.proyecto }, { status: 200 });
 }

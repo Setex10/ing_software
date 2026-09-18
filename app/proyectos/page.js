@@ -10,6 +10,7 @@
 import { useEffect, useState } from "react";
 import Link from "next/link";
 import styles from "./proyectos.module.css";
+import LogoutButton from "../components/LogoutButton";
 
 function formatearFecha(fechaISO) {
   const fecha = new Date(fechaISO);
@@ -63,9 +64,12 @@ export default function ProyectosPage() {
       <div className={styles.card}>
         <div className={styles.header}>
           <h1 className={styles.title}>Mis proyectos</h1>
-          <Link href="/proyectos/nuevo" className={styles.primaryButton}>
-            + Nuevo proyecto
-          </Link>
+          <div style={{ display: "flex", gap: 12 }}>
+            <Link href="/proyectos/nuevo" className={styles.primaryButton}>
+              + Nuevo proyecto
+            </Link>
+            <LogoutButton className={styles.secondaryButton} />
+          </div>
         </div>
 
         {cargando && <p className={styles.info}>Cargando proyectos...</p>}
@@ -85,24 +89,26 @@ export default function ProyectosPage() {
           <ul className={styles.list}>
             {proyectos.map((proyecto) => (
               <li key={proyecto._id} className={styles.listItem}>
-                <div className={styles.listItemHeader}>
-                  <span className={styles.projectName}>{proyecto.nombre}</span>
-                  <span className={styles.dueDate}>
-                    Vence: {formatearFecha(proyecto.fechaLimite)}
-                  </span>
-                </div>
-
-                <div className={styles.progressRow}>
-                  <div className={styles.progressBarTrack}>
-                    <div
-                      className={styles.progressBarFill}
-                      style={{ width: `${proyecto.porcentajeAvance}%` }}
-                    />
+                <Link href={`/proyectos/${proyecto._id}`} style={{ textDecoration: "none" }}>
+                  <div className={styles.listItemHeader}>
+                    <span className={styles.projectName}>{proyecto.nombre}</span>
+                    <span className={styles.dueDate}>
+                      Vence: {formatearFecha(proyecto.fechaLimite)}
+                    </span>
                   </div>
-                  <span className={styles.progressLabel}>
-                    {proyecto.porcentajeAvance}%
-                  </span>
-                </div>
+
+                  <div className={styles.progressRow}>
+                    <div className={styles.progressBarTrack}>
+                      <div
+                        className={styles.progressBarFill}
+                        style={{ width: `${proyecto.porcentajeAvance}%` }}
+                      />
+                    </div>
+                    <span className={styles.progressLabel}>
+                      {proyecto.porcentajeAvance}%
+                    </span>
+                  </div>
+                </Link>
               </li>
             ))}
           </ul>
