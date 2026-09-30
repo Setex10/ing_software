@@ -79,7 +79,7 @@ export default function ProyectoDetallePage() {
               Vence: {formatearFecha(proyecto.fechaLimite)}
             </p>
 
-            <div className={styles.progressRow} style={{ margin: "16px 0 24px" }}>
+            <div className={styles.progressRow} style={{ marginTop: 16 }}>
               <div className={styles.progressBarTrack}>
                 <div
                   className={styles.progressBarFill}
@@ -87,6 +87,21 @@ export default function ProyectoDetallePage() {
                 />
               </div>
               <span className={styles.progressLabel}>{proyecto.porcentajeAvance}%</span>
+            </div>
+
+            <div className={styles.statGrid}>
+              <div className={styles.statTile}>
+                <div className={styles.statValue}>{proyecto.totalIntegrantes}</div>
+                <div className={styles.statLabel}>Integrantes</div>
+              </div>
+              <div className={styles.statTile}>
+                <div className={styles.statValue}>{proyecto.totalTareas}</div>
+                <div className={styles.statLabel}>Tareas totales</div>
+              </div>
+              <div className={styles.statTile}>
+                <div className={styles.statValue}>{proyecto.tareasCompletadas}</div>
+                <div className={styles.statLabel}>Completadas</div>
+              </div>
             </div>
 
             <div style={{ display: "flex", gap: 12 }}>

@@ -52,8 +52,8 @@ Rutas principales:
 - `/proyectos/nuevo` → formulario para crear un proyecto
 - `/proyectos/[id]` → detalle de un proyecto (avance, accesos a Integrantes y Tareas)
 - `/proyectos/[id]/integrantes` → agregar y listar integrantes del proyecto
-- `/proyectos/[id]/tareas` → crear tareas, listarlas y marcarlas como completadas
-- `/api/projects`, `/api/projects/[id]`, `/api/projects/[id]/members`, `/api/projects/[id]/tasks`, `/api/projects/[id]/tasks/[taskId]` → API
+- `/proyectos/[id]/tareas` → crear tareas, consultarlas, asignarlas a un integrante, cambiar su estado (pendiente / en progreso / completada) y eliminarlas
+- `/api/projects`, `/api/projects/[id]`, `/api/projects/[id]/members`, `/api/projects/[id]/tasks`, `/api/projects/[id]/tasks/[taskId]` → API (esta última soporta `PATCH` para actualizar estado/responsable y `DELETE` para eliminar la tarea)
 
 ## 3. Compilar para producción (opcional)
 
@@ -74,18 +74,19 @@ app/
   api/projects/[id]/route.js              -> detalle de un proyecto
   api/projects/[id]/members/route.js      -> integrantes de un proyecto
   api/projects/[id]/tasks/route.js        -> tareas de un proyecto
-  api/projects/[id]/tasks/[taskId]/route.js -> actualizar estado de una tarea
-  proyectos/page.js                       -> lista de proyectos
+  api/projects/[id]/tasks/[taskId]/route.js -> actualizar (estado/responsable) o eliminar una tarea
+  proyectos/page.js                       -> lista de proyectos (con conteo de integrantes/tareas)
   proyectos/nuevo/page.js                 -> formulario de creación
-  proyectos/[id]/page.js                  -> detalle de un proyecto
-  proyectos/[id]/integrantes/page.js      -> módulo de integrantes
-  proyectos/[id]/tareas/page.js           -> módulo de tareas
+  proyectos/[id]/page.js                  -> detalle de un proyecto (con tarjetas de estadísticas)
+  proyectos/[id]/integrantes/page.js      -> módulo de integrantes (con avatares)
+  proyectos/[id]/tareas/page.js           -> módulo de tareas (asignación, estado, eliminar)
 middleware.js                             -> protege /proyectos si no hay sesión
 lib/
   localStore.js                           -> almacenamiento en memoria (reemplaza a la base de datos)
   authUsers.js                            -> usuario de prueba para el login simulado
   auth.js                                 -> firma/verifica el JWT de sesión
   sessionCookie.js                        -> nombre de la cookie de sesión (usado también por el middleware)
+  avatar.js                               -> iniciales y color de avatar a partir de un nombre
 services/project-service/
   models/Project.js                       -> validación de datos de entrada
   repositories/projectRepository.js       -> acceso a los proyectos en memoria
@@ -101,6 +102,9 @@ services/task-service/
 
 - El progreso de un proyecto (`porcentajeAvance`) se calcula a partir de sus
   tareas: `tareas completadas / tareas totales * 100`.
+- Una tarea puede asignarse a un integrante ya registrado en el proyecto
+  (`responsableId`); no se puede asignar a un integrante que no exista en
+  ese proyecto.
 - Solo el creador de un proyecto puede ver y administrar sus integrantes y
   tareas (no hay multiusuario real: todo se hace con el único usuario de prueba).
 - Al reiniciar el servidor (`npm run dev` / `npm start`), todos los datos

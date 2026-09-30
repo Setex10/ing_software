@@ -1,9 +1,10 @@
 // app/proyectos/[id]/tareas/page.js
 //
-// HU: como usuario, quiero crear tareas para dividir el trabajo del
-// proyecto. Permite crear tareas (título + descripción), quedan asociadas
-// al proyecto y se pueden marcar como completadas. No permite tareas sin
-// título.
+// HU4b: consultar tareas del proyecto (con su información básica).
+// HU4c: asignar una tarea a un integrante para distribuir responsabilidades.
+// HU4d: actualizar el estado de una tarea (pendiente / en progreso / completada).
+// HU4e: eliminar una tarea (con confirmación).
+// También cubre la HU original de creación: título + descripción obligatorios.
 
 "use client";
 
@@ -12,34 +13,55 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import styles from "../../proyectos.module.css";
 import formStyles from "../../nuevo/nuevo.module.css";
+import { getInitials, getAvatarColor } from "@/lib/avatar";
+
+const ESTADO_LABEL = {
+  pendiente: "Pendiente",
+  en_progreso: "En progreso",
+  completada: "Completada",
+};
+
+const ESTADO_CLASS = {
+  pendiente: styles.statusPendiente,
+  en_progreso: styles.statusEnProgreso,
+  completada: styles.statusCompletada,
+};
 
 export default function TareasPage() {
   const { id } = useParams();
 
   const [tareas, setTareas] = useState([]);
+  const [integrantes, setIntegrantes] = useState([]);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
   const [titulo, setTitulo] = useState("");
   const [descripcion, setDescripcion] = useState("");
+  const [responsableId, setResponsableId] = useState("");
   const [erroresForm, setErroresForm] = useState([]);
   const [enviando, setEnviando] = useState(false);
 
-  async function cargarTareas() {
+  async function cargarDatos() {
     try {
-      const res = await fetch(`/api/projects/${id}/tasks`, {
-        method: "GET",
-        credentials: "include",
-      });
+      const [resTareas, resIntegrantes] = await Promise.all([
+        fetch(`/api/projects/${id}/tasks`, { method: "GET", credentials: "include" }),
+        fetch(`/api/projects/${id}/members`, { method: "GET", credentials: "include" }),
+      ]);
 
-      if (!res.ok) {
-        const data = await res.json().catch(() => ({}));
+      if (!resTareas.ok) {
+        const data = await resTareas.json().catch(() => ({}));
         setError(data.error || "No se pudieron cargar las tareas.");
         return;
       }
 
-      const data = await res.json();
-      setTareas(data.tareas || []);
+      const dataTareas = await resTareas.json();
+      setTareas(dataTareas.tareas || []);
+
+      if (resIntegrantes.ok) {
+        const dataIntegrantes = await resIntegrantes.json();
+        setIntegrantes(dataIntegrantes.integrantes || []);
+      }
+
       setError("");
     } catch (err) {
       setError("Error de conexión al cargar las tareas.");
@@ -49,7 +71,7 @@ export default function TareasPage() {
   }
 
   useEffect(() => {
-    cargarTareas();
+    cargarDatos();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id]);
 
@@ -72,7 +94,7 @@ export default function TareasPage() {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ titulo, descripcion }),
+        body: JSON.stringify({ titulo, descripcion, responsableId: responsableId || null }),
       });
 
       if (!res.ok) {
@@ -83,7 +105,8 @@ export default function TareasPage() {
 
       setTitulo("");
       setDescripcion("");
-      await cargarTareas();
+      setResponsableId("");
+      await cargarDatos();
     } catch (err) {
       setErroresForm(["Error de conexión al crear la tarea."]);
     } finally {
@@ -91,15 +114,13 @@ export default function TareasPage() {
     }
   }
 
-  async function alternarCompletada(tarea) {
-    const nuevoEstado = tarea.estado === "completada" ? "pendiente" : "completada";
-
+  async function cambiarEstado(tarea, estado) {
     try {
       const res = await fetch(`/api/projects/${id}/tasks/${tarea._id}`, {
         method: "PATCH",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ estado: nuevoEstado }),
+        body: JSON.stringify({ estado }),
       });
 
       if (!res.ok) {
@@ -108,9 +129,33 @@ export default function TareasPage() {
         return;
       }
 
-      await cargarTareas();
+      await cargarDatos();
     } catch (err) {
       setError("Error de conexión al actualizar la tarea.");
+    }
+  }
+
+  async function eliminarTarea(tarea) {
+    const confirmado = window.confirm(
+      `¿Eliminar la tarea "${tarea.titulo}"? Esta acción no se puede deshacer.`
+    );
+    if (!confirmado) return;
+
+    try {
+      const res = await fetch(`/api/projects/${id}/tasks/${tarea._id}`, {
+        method: "DELETE",
+        credentials: "include",
+      });
+
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        setError(data.error || "No se pudo eliminar la tarea.");
+        return;
+      }
+
+      await cargarDatos();
+    } catch (err) {
+      setError("Error de conexión al eliminar la tarea.");
     }
   }
 
@@ -164,6 +209,23 @@ export default function TareasPage() {
             required
           />
 
+          <label className={formStyles.label} htmlFor="responsable">
+            Asignar a (opcional)
+          </label>
+          <select
+            id="responsable"
+            className={formStyles.select}
+            value={responsableId}
+            onChange={(e) => setResponsableId(e.target.value)}
+          >
+            <option value="">Sin asignar</option>
+            {integrantes.map((integrante) => (
+              <option key={integrante.id} value={integrante.id}>
+                {integrante.nombre}
+              </option>
+            ))}
+          </select>
+
           <div className={formStyles.actions}>
             <button type="submit" className={styles.primaryButton} disabled={enviando}>
               {enviando ? "Creando..." : "Crear tarea"}
@@ -175,27 +237,75 @@ export default function TareasPage() {
         {!cargando && error && <p className={styles.error}>{error}</p>}
 
         {!cargando && !error && tareas.length === 0 && (
-          <p className={styles.info}>Este proyecto aún no tiene tareas.</p>
+          <div className={styles.emptyState}>
+            <svg className={styles.emptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <rect x="4" y="3" width="16" height="18" rx="2" />
+              <path d="M8 8h8M8 12h8M8 16h5" strokeLinecap="round" />
+            </svg>
+            <p className={styles.emptyTitle}>Este proyecto aún no tiene tareas</p>
+            <p>Crea la primera arriba para empezar a dividir el trabajo.</p>
+          </div>
         )}
 
         {!cargando && !error && tareas.length > 0 && (
           <ul className={styles.list}>
             {tareas.map((tarea) => (
               <li key={tarea._id} className={styles.listItem}>
-                <div className={styles.listItemHeader}>
-                  <label
-                    className={styles.projectName}
-                    style={{ display: "flex", alignItems: "center", gap: 8, cursor: "pointer" }}
-                  >
-                    <input
-                      type="checkbox"
-                      checked={tarea.estado === "completada"}
-                      onChange={() => alternarCompletada(tarea)}
-                    />
-                    {tarea.titulo}
-                  </label>
+                <div className={styles.taskTop}>
+                  <div>
+                    <span className={styles.projectName}>{tarea.titulo}</span>
+                    <p className={styles.info} style={{ margin: "4px 0 0" }}>
+                      {tarea.descripcion}
+                    </p>
+                  </div>
+
+                  <div className={styles.taskActions}>
+                    <select
+                      className={`${styles.statusSelect} ${ESTADO_CLASS[tarea.estado]}`}
+                      value={tarea.estado}
+                      onChange={(e) => cambiarEstado(tarea, e.target.value)}
+                    >
+                      {Object.entries(ESTADO_LABEL).map(([valor, etiqueta]) => (
+                        <option key={valor} value={valor}>
+                          {etiqueta}
+                        </option>
+                      ))}
+                    </select>
+
+                    <button
+                      type="button"
+                      className={styles.iconButton}
+                      onClick={() => eliminarTarea(tarea)}
+                      aria-label={`Eliminar tarea ${tarea.titulo}`}
+                      title="Eliminar tarea"
+                    >
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" strokeLinecap="round" strokeLinejoin="round" />
+                      </svg>
+                    </button>
+                  </div>
                 </div>
-                <span className={styles.info}>{tarea.descripcion}</span>
+
+                <div className={styles.metaRow}>
+                  {tarea.responsableNombre ? (
+                    <span className={styles.metaItem}>
+                      <span
+                        className={styles.avatar}
+                        style={{
+                          backgroundColor: getAvatarColor(tarea.responsableNombre),
+                          width: 22,
+                          height: 22,
+                          fontSize: 10,
+                        }}
+                      >
+                        {getInitials(tarea.responsableNombre)}
+                      </span>
+                      {tarea.responsableNombre}
+                    </span>
+                  ) : (
+                    <span className={styles.metaItem}>Sin asignar</span>
+                  )}
+                </div>
               </li>
             ))}
           </ul>

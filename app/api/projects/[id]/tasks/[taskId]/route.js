@@ -1,9 +1,17 @@
 // app/api/projects/[id]/tasks/[taskId]/route.js
 //
-// Punto de entrada HTTP para actualizar el estado de una tarea puntual.
+// Punto de entrada HTTP para actualizar (estado / responsable) o eliminar
+// una tarea puntual.
 
-import { handleUpdateTaskStatus } from "@/services/task-service/controllers/taskController.js";
+import {
+  handleUpdateTask,
+  handleDeleteTask,
+} from "@/services/task-service/controllers/taskController.js";
 
 export async function PATCH(request, { params }) {
-  return handleUpdateTaskStatus(request, params.id, params.taskId);
+  return handleUpdateTask(request, params.id, params.taskId);
+}
+
+export async function DELETE(request, { params }) {
+  return handleDeleteTask(request, params.id, params.taskId);
 }

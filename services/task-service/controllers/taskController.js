@@ -8,7 +8,8 @@ import { getAuthUser } from "@/lib/auth";
 import {
   crearTareaParaProyecto,
   listarTareasDeProyecto,
-  cambiarEstadoTarea,
+  actualizarTareaDeProyecto,
+  eliminarTareaDeProyecto,
 } from "../services/taskService.js";
 
 /**
@@ -61,8 +62,9 @@ export async function handleListTasks(request, proyectoId) {
 
 /**
  * PATCH /api/projects/:id/tasks/:taskId
+ * Body: { estado?, responsableId? }
  */
-export async function handleUpdateTaskStatus(request, proyectoId, tareaId) {
+export async function handleUpdateTask(request, proyectoId, tareaId) {
   const user = getAuthUser(request);
 
   if (!user) {
@@ -79,11 +81,30 @@ export async function handleUpdateTaskStatus(request, proyectoId, tareaId) {
     );
   }
 
-  const result = await cambiarEstadoTarea(user.userId, proyectoId, tareaId, body?.estado);
+  const result = await actualizarTareaDeProyecto(user.userId, proyectoId, tareaId, body);
 
   if (!result.ok) {
     return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
   }
 
   return NextResponse.json({ tarea: result.tarea }, { status: 200 });
+}
+
+/**
+ * DELETE /api/projects/:id/tasks/:taskId
+ */
+export async function handleDeleteTask(request, proyectoId, tareaId) {
+  const user = getAuthUser(request);
+
+  if (!user) {
+    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+  }
+
+  const result = await eliminarTareaDeProyecto(user.userId, proyectoId, tareaId);
+
+  if (!result.ok) {
+    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
+  }
+
+  return NextResponse.json({ ok: true }, { status: 200 });
 }

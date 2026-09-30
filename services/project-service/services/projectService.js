@@ -53,15 +53,21 @@ export async function listarProyectosDeUsuario(userId) {
 
   const proyectos = await listarProyectosPorUsuario(userId);
 
-  const proyectosConAvance = proyectos.map((proyecto) => ({
-    _id: proyecto._id,
-    nombre: proyecto.nombre,
-    descripcion: proyecto.descripcion,
-    fechaLimite: proyecto.fechaLimite,
-    creadorId: proyecto.creadorId,
-    integrantes: proyecto.integrantes,
-    porcentajeAvance: calcularAvance(proyecto._id),
-  }));
+  const proyectosConAvance = proyectos.map((proyecto) => {
+    const { total, completadas } = contarTareas(proyecto._id);
+    return {
+      _id: proyecto._id,
+      nombre: proyecto.nombre,
+      descripcion: proyecto.descripcion,
+      fechaLimite: proyecto.fechaLimite,
+      creadorId: proyecto.creadorId,
+      integrantes: proyecto.integrantes,
+      totalIntegrantes: proyecto.integrantes.length,
+      totalTareas: total,
+      tareasCompletadas: completadas,
+      porcentajeAvance: porcentaje(total, completadas),
+    };
+  });
 
   return { ok: true, proyectos: proyectosConAvance };
 }
@@ -82,10 +88,33 @@ export async function obtenerProyectoDeUsuario(userId, proyectoId) {
     return { ok: false, status: 404, errors: ["El proyecto no existe."] };
   }
 
+  const { total, completadas } = contarTareas(proyecto._id);
+
   return {
     ok: true,
-    proyecto: { ...proyecto, porcentajeAvance: calcularAvance(proyecto._id) },
+    proyecto: {
+      ...proyecto,
+      totalIntegrantes: proyecto.integrantes.length,
+      totalTareas: total,
+      tareasCompletadas: completadas,
+      porcentajeAvance: porcentaje(total, completadas),
+    },
   };
+}
+
+/**
+ * Cuenta las tareas de un proyecto y cuántas están completadas.
+ * @param {string} proyectoId
+ * @returns {{ total: number, completadas: number }}
+ */
+function contarTareas(proyectoId) {
+  const tareas = db.tasks.filter((tarea) => tarea.proyectoId === proyectoId);
+  const completadas = tareas.filter((tarea) => tarea.estado === "completada").length;
+  return { total: tareas.length, completadas };
+}
+
+function porcentaje(total, completadas) {
+  return total === 0 ? 0 : Math.round((completadas / total) * 100);
 }
 
 /**
@@ -94,13 +123,6 @@ export async function obtenerProyectoDeUsuario(userId, proyectoId) {
  * @returns {number} entero entre 0 y 100
  */
 export function calcularAvance(proyectoId) {
-  const tareas = db.tasks.filter((tarea) => tarea.proyectoId === proyectoId);
-
-  if (tareas.length === 0) {
-    return 0;
-  }
-
-  const tareasCompletadas = tareas.filter((tarea) => tarea.estado === "completada").length;
-
-  return Math.round((tareasCompletadas / tareas.length) * 100);
+  const { total, completadas } = contarTareas(proyectoId);
+  return porcentaje(total, completadas);
 }
