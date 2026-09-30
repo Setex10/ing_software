@@ -30,3 +30,6 @@ jobs:
 
       - name: Build de producción
         run: npm run build
+
+      - name: Build de la imagen Docker
+        run: docker build -t ing-software:ci .

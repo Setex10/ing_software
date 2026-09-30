@@ -3,8 +3,8 @@
 // Capa de controlador: traduce entre el mundo HTTP (Request/NextResponse)
 // y el mundo de negocio (services). No contiene queries ni reglas de negocio.
 
-import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
+import { requireAuthUser, parseJsonBody, jsonFromResult } from "@/lib/httpController";
 import {
   crearProyectoParaUsuario,
   listarProyectosDeUsuario,
@@ -16,31 +16,14 @@ import {
  */
 export async function handleCreateProject(request) {
   const user = getAuthUser(request);
+  const authError = requireAuthUser(user);
+  if (authError) return authError;
 
-  if (!user) {
-    return NextResponse.json(
-      { error: "No autenticado." },
-      { status: 401 }
-    );
-  }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch (err) {
-    return NextResponse.json(
-      { error: "El cuerpo de la petición no es un JSON válido." },
-      { status: 400 }
-    );
-  }
+  const { body, response } = await parseJsonBody(request);
+  if (response) return response;
 
   const result = await crearProyectoParaUsuario(user.userId, body);
-
-  if (!result.ok) {
-    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
-  }
-
-  return NextResponse.json({ proyecto: result.proyecto }, { status: 201 });
+  return jsonFromResult(result, "proyecto", 201);
 }
 
 /**
@@ -48,21 +31,11 @@ export async function handleCreateProject(request) {
  */
 export async function handleListProjects(request) {
   const user = getAuthUser(request);
-
-  if (!user) {
-    return NextResponse.json(
-      { error: "No autenticado." },
-      { status: 401 }
-    );
-  }
+  const authError = requireAuthUser(user);
+  if (authError) return authError;
 
   const result = await listarProyectosDeUsuario(user.userId);
-
-  if (!result.ok) {
-    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
-  }
-
-  return NextResponse.json({ proyectos: result.proyectos }, { status: 200 });
+  return jsonFromResult(result, "proyectos", 200);
 }
 
 /**
@@ -70,19 +43,9 @@ export async function handleListProjects(request) {
  */
 export async function handleGetProject(request, proyectoId) {
   const user = getAuthUser(request);
-
-  if (!user) {
-    return NextResponse.json(
-      { error: "No autenticado." },
-      { status: 401 }
-    );
-  }
+  const authError = requireAuthUser(user);
+  if (authError) return authError;
 
   const result = await obtenerProyectoDeUsuario(user.userId, proyectoId);
-
-  if (!result.ok) {
-    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
-  }
-
-  return NextResponse.json({ proyecto: result.proyecto }, { status: 200 });
+  return jsonFromResult(result, "proyecto", 200);
 }

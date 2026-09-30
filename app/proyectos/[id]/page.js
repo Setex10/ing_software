@@ -49,6 +49,7 @@ export default function ProyectoDetallePage() {
         const data = await res.json();
         setProyecto(data.proyecto);
       } catch (err) {
+        console.error("Error de conexión al cargar el proyecto:", err);
         setError("Error de conexión al cargar el proyecto.");
       } finally {
         setCargando(false);
