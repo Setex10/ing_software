@@ -12,6 +12,9 @@ const createJestConfig = nextJest({ dir: "./" });
 const customJestConfig = {
   testEnvironment: "node",
   testPathIgnorePatterns: ["/node_modules/", "/.next/"],
+  // Evita que Jest escanee la carpeta de build (.next/standalone/package.json
+  // duplica el nombre de este package.json y generaba un warning de Haste).
+  modulePathIgnorePatterns: ["<rootDir>/.next/"],
   collectCoverageFrom: [
     "lib/**/*.js",
     "services/**/models/**/*.js",

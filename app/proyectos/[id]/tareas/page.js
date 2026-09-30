@@ -71,6 +71,7 @@ export default function TareasPage() {
 
       setError("");
     } catch (err) {
+      console.error("Error de conexión al cargar las tareas:", err);
       setError("Error de conexión al cargar las tareas.");
     } finally {
       setCargando(false);
@@ -115,6 +116,7 @@ export default function TareasPage() {
       setResponsableId("");
       await cargarDatos();
     } catch (err) {
+      console.error("Error de conexión al crear la tarea:", err);
       setErroresForm(["Error de conexión al crear la tarea."]);
     } finally {
       setEnviando(false);
@@ -138,6 +140,7 @@ export default function TareasPage() {
 
       await cargarDatos();
     } catch (err) {
+      console.error("Error de conexión al actualizar la tarea:", err);
       setError("Error de conexión al actualizar la tarea.");
     }
   }
@@ -162,6 +165,7 @@ export default function TareasPage() {
 
       await cargarDatos();
     } catch (err) {
+      console.error("Error de conexión al eliminar la tarea:", err);
       setError("Error de conexión al eliminar la tarea.");
     }
   }

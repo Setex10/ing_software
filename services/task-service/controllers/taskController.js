@@ -5,6 +5,7 @@
 
 import { NextResponse } from "next/server";
 import { getAuthUser, esAdmin } from "@/lib/auth";
+import { requireAuthUser, parseJsonBody, jsonFromResult } from "@/lib/httpController";
 import {
   crearTareaParaProyecto,
   listarTareasDeProyecto,
@@ -17,28 +18,14 @@ import {
  */
 export async function handleCreateTask(request, proyectoId) {
   const user = getAuthUser(request);
+  const authError = requireAuthUser(user);
+  if (authError) return authError;
 
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
-  }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch (err) {
-    return NextResponse.json(
-      { error: "El cuerpo de la petición no es un JSON válido." },
-      { status: 400 }
-    );
-  }
+  const { body, response } = await parseJsonBody(request);
+  if (response) return response;
 
   const result = await crearTareaParaProyecto(user.userId, proyectoId, body);
-
-  if (!result.ok) {
-    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
-  }
-
-  return NextResponse.json({ tarea: result.tarea }, { status: 201 });
+  return jsonFromResult(result, "tarea", 201);
 }
 
 /**
@@ -46,18 +33,11 @@ export async function handleCreateTask(request, proyectoId) {
  */
 export async function handleListTasks(request, proyectoId) {
   const user = getAuthUser(request);
-
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
-  }
+  const authError = requireAuthUser(user);
+  if (authError) return authError;
 
   const result = await listarTareasDeProyecto(user.userId, proyectoId);
-
-  if (!result.ok) {
-    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
-  }
-
-  return NextResponse.json({ tareas: result.tareas }, { status: 200 });
+  return jsonFromResult(result, "tareas", 200);
 }
 
 /**
@@ -66,28 +46,14 @@ export async function handleListTasks(request, proyectoId) {
  */
 export async function handleUpdateTask(request, proyectoId, tareaId) {
   const user = getAuthUser(request);
+  const authError = requireAuthUser(user);
+  if (authError) return authError;
 
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
-  }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch (err) {
-    return NextResponse.json(
-      { error: "El cuerpo de la petición no es un JSON válido." },
-      { status: 400 }
-    );
-  }
+  const { body, response } = await parseJsonBody(request);
+  if (response) return response;
 
   const result = await actualizarTareaDeProyecto(user.userId, proyectoId, tareaId, body);
-
-  if (!result.ok) {
-    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
-  }
-
-  return NextResponse.json({ tarea: result.tarea }, { status: 200 });
+  return jsonFromResult(result, "tarea", 200);
 }
 
 /**
@@ -98,10 +64,8 @@ export async function handleUpdateTask(request, proyectoId, tareaId) {
  */
 export async function handleDeleteTask(request, proyectoId, tareaId) {
   const user = getAuthUser(request);
-
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
-  }
+  const authError = requireAuthUser(user);
+  if (authError) return authError;
 
   if (!esAdmin(user)) {
     return NextResponse.json(
@@ -111,10 +75,8 @@ export async function handleDeleteTask(request, proyectoId, tareaId) {
   }
 
   const result = await eliminarTareaDeProyecto(user.userId, proyectoId, tareaId);
-
   if (!result.ok) {
     return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
   }
-
   return NextResponse.json({ ok: true }, { status: 200 });
 }

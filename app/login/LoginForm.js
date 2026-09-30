@@ -57,6 +57,7 @@ export default function LoginForm({ credencialesDemo, credencialesDemoUsuario })
       router.push(destino);
       router.refresh();
     } catch (err) {
+      console.error("Error de conexión al iniciar sesión:", err);
       setError("Error de conexión al iniciar sesión.");
       setEnviando(false);
     }

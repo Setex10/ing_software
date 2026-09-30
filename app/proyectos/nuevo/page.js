@@ -63,6 +63,7 @@ export default function NuevoProyectoPage() {
 
       router.push("/proyectos");
     } catch (err) {
+      console.error("Error de conexión al crear el proyecto:", err);
       setErrores(["Error de conexión al crear el proyecto."]);
       setEnviando(false);
     }

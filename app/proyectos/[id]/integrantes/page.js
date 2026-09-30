@@ -43,6 +43,7 @@ export default function IntegrantesPage() {
       setIntegrantes(data.integrantes || []);
       setError("");
     } catch (err) {
+      console.error("Error de conexión al cargar los integrantes:", err);
       setError("Error de conexión al cargar los integrantes.");
     } finally {
       setCargando(false);
@@ -84,6 +85,7 @@ export default function IntegrantesPage() {
       setRol("");
       await cargarIntegrantes();
     } catch (err) {
+      console.error("Error de conexión al agregar el integrante:", err);
       setErroresForm(["Error de conexión al agregar el integrante."]);
     } finally {
       setEnviando(false);

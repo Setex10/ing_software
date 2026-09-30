@@ -3,8 +3,8 @@
 // Capa de controlador: traduce entre el mundo HTTP y el mundo de negocio
 // (services). No contiene queries ni reglas de negocio.
 
-import { NextResponse } from "next/server";
 import { getAuthUser } from "@/lib/auth";
+import { requireAuthUser, parseJsonBody, jsonFromResult } from "@/lib/httpController";
 import {
   agregarIntegranteAProyecto,
   listarIntegrantesDeProyecto,
@@ -15,28 +15,14 @@ import {
  */
 export async function handleAddMember(request, proyectoId) {
   const user = getAuthUser(request);
+  const authError = requireAuthUser(user);
+  if (authError) return authError;
 
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
-  }
-
-  let body;
-  try {
-    body = await request.json();
-  } catch (err) {
-    return NextResponse.json(
-      { error: "El cuerpo de la petición no es un JSON válido." },
-      { status: 400 }
-    );
-  }
+  const { body, response } = await parseJsonBody(request);
+  if (response) return response;
 
   const result = await agregarIntegranteAProyecto(user.userId, proyectoId, body);
-
-  if (!result.ok) {
-    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
-  }
-
-  return NextResponse.json({ integrante: result.integrante }, { status: 201 });
+  return jsonFromResult(result, "integrante", 201);
 }
 
 /**
@@ -44,16 +30,9 @@ export async function handleAddMember(request, proyectoId) {
  */
 export async function handleListMembers(request, proyectoId) {
   const user = getAuthUser(request);
-
-  if (!user) {
-    return NextResponse.json({ error: "No autenticado." }, { status: 401 });
-  }
+  const authError = requireAuthUser(user);
+  if (authError) return authError;
 
   const result = await listarIntegrantesDeProyecto(user.userId, proyectoId);
-
-  if (!result.ok) {
-    return NextResponse.json({ error: result.errors.join(" ") }, { status: result.status });
-  }
-
-  return NextResponse.json({ integrantes: result.integrantes }, { status: 200 });
+  return jsonFromResult(result, "integrantes", 200);
 }
