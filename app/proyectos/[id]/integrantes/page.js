@@ -11,6 +11,7 @@ import Link from "next/link";
 import { useParams } from "next/navigation";
 import styles from "../../proyectos.module.css";
 import formStyles from "../../nuevo/nuevo.module.css";
+import { getInitials, getAvatarColor } from "@/lib/avatar";
 
 export default function IntegrantesPage() {
   const { id } = useParams();
@@ -160,18 +161,39 @@ export default function IntegrantesPage() {
         {!cargando && error && <p className={styles.error}>{error}</p>}
 
         {!cargando && !error && integrantes.length === 0 && (
-          <p className={styles.info}>Este proyecto aún no tiene integrantes.</p>
+          <div className={styles.emptyState}>
+            <svg className={styles.emptyIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+              <circle cx="9" cy="8" r="3.2" />
+              <path d="M3.5 19c0-3 2.5-5.2 5.5-5.2s5.5 2.2 5.5 5.2" strokeLinecap="round" />
+              <circle cx="17" cy="8.5" r="2.4" />
+              <path d="M15.5 13.7c2.6.2 4.6 2.2 4.6 4.8" strokeLinecap="round" />
+            </svg>
+            <p className={styles.emptyTitle}>Este proyecto aún no tiene integrantes</p>
+            <p>Agrega el primero arriba para poder asignarle tareas.</p>
+          </div>
         )}
 
         {!cargando && !error && integrantes.length > 0 && (
           <ul className={styles.list}>
             {integrantes.map((integrante) => (
               <li key={integrante.id} className={styles.listItem}>
-                <div className={styles.listItemHeader}>
-                  <span className={styles.projectName}>{integrante.nombre}</span>
+                <div className={styles.listItemHeader} style={{ marginBottom: integrante.email ? 6 : 0 }}>
+                  <span style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span
+                      className={styles.avatar}
+                      style={{ backgroundColor: getAvatarColor(integrante.nombre) }}
+                    >
+                      {getInitials(integrante.nombre)}
+                    </span>
+                    <span className={styles.projectName}>{integrante.nombre}</span>
+                  </span>
                   {integrante.rol && <span className={styles.dueDate}>{integrante.rol}</span>}
                 </div>
-                {integrante.email && <span className={styles.info}>{integrante.email}</span>}
+                {integrante.email && (
+                  <span className={styles.info} style={{ marginLeft: 40 }}>
+                    {integrante.email}
+                  </span>
+                )}
               </li>
             ))}
           </ul>

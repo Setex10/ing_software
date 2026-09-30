@@ -18,7 +18,8 @@
 }
 
 .input,
-.textarea {
+.textarea,
+.select {
   border: 1px solid #d7dae3;
   border-radius: 8px;
   padding: 10px 12px;
@@ -26,10 +27,12 @@
   font-family: inherit;
   color: #1f2430;
   outline: none;
+  background-color: #ffffff;
 }
 
 .input:focus,
-.textarea:focus {
+.textarea:focus,
+.select:focus {
   border-color: #3b5bfd;
   box-shadow: 0 0 0 3px rgba(59, 91, 253, 0.15);
 }

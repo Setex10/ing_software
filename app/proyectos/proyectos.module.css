@@ -158,3 +158,140 @@
   min-width: 36px;
   text-align: right;
 }
+
+/* Avatares (integrantes / responsable de una tarea) */
+
+.avatar {
+  flex-shrink: 0;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #ffffff;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+/* Meta info secundaria bajo un título (conteos, responsable, etc.) */
+
+.metaRow {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 14px;
+  margin-top: 6px;
+  font-size: 13px;
+  color: #7a8093;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Tarjetas de estadísticas (detalle de proyecto) */
+
+.statGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 12px;
+  margin: 20px 0 24px;
+}
+
+.statTile {
+  background-color: #f5f6fa;
+  border-radius: 10px;
+  padding: 14px 10px;
+  text-align: center;
+}
+
+.statValue {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1f2430;
+  line-height: 1.2;
+}
+
+.statLabel {
+  font-size: 12px;
+  color: #7a8093;
+  margin-top: 4px;
+}
+
+/* Estado vacío ilustrado */
+
+.emptyIcon {
+  width: 52px;
+  height: 52px;
+  margin: 0 auto 14px;
+  color: #c3c8d6;
+}
+
+.emptyTitle {
+  font-size: 16px;
+  font-weight: 600;
+  color: #1f2430;
+  margin: 0 0 6px;
+}
+
+/* Tareas: fila de acciones, selector de estado con color y botón eliminar */
+
+.taskTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.taskActions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.statusSelect {
+  border: none;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  outline: none;
+}
+
+.statusPendiente {
+  background-color: #eceef5;
+  color: #555b6e;
+}
+
+.statusEnProgreso {
+  background-color: #dbe4ff;
+  color: #2d47cc;
+}
+
+.statusCompletada {
+  background-color: #e5f4e8;
+  color: #1e7d32;
+}
+
+.iconButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  border: none;
+  border-radius: 8px;
+  background: none;
+  color: #b3261e;
+  cursor: pointer;
+}
+
+.iconButton:hover {
+  background-color: #fdecec;
+}
