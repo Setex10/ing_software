@@ -5,6 +5,9 @@
 /.next/
 /out/
 
+# Reporte de cobertura de Jest
+/coverage/
+
 # Variables de entorno (el proyecto no las necesita para correr, pero se
 # ignoran por si se agregan en el futuro)
 .env

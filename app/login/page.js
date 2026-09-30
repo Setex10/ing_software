@@ -5,12 +5,15 @@
 
 import { Suspense } from "react";
 import LoginForm from "./LoginForm";
-import { CREDENCIALES_DEMO } from "@/lib/authUsers";
+import { CREDENCIALES_DEMO, CREDENCIALES_DEMO_USUARIO } from "@/lib/authUsers";
 
 export default function LoginPage() {
   return (
     <Suspense fallback={null}>
-      <LoginForm credencialesDemo={CREDENCIALES_DEMO} />
+      <LoginForm
+        credencialesDemo={CREDENCIALES_DEMO}
+        credencialesDemoUsuario={CREDENCIALES_DEMO_USUARIO}
+      />
     </Suspense>
   );
 }

@@ -32,6 +32,7 @@ export default function TareasPage() {
 
   const [tareas, setTareas] = useState([]);
   const [integrantes, setIntegrantes] = useState([]);
+  const [esAdmin, setEsAdmin] = useState(false);
   const [cargando, setCargando] = useState(true);
   const [error, setError] = useState("");
 
@@ -43,9 +44,10 @@ export default function TareasPage() {
 
   async function cargarDatos() {
     try {
-      const [resTareas, resIntegrantes] = await Promise.all([
+      const [resTareas, resIntegrantes, resUsuario] = await Promise.all([
         fetch(`/api/projects/${id}/tasks`, { method: "GET", credentials: "include" }),
         fetch(`/api/projects/${id}/members`, { method: "GET", credentials: "include" }),
+        fetch("/api/auth/me", { method: "GET", credentials: "include" }),
       ]);
 
       if (!resTareas.ok) {
@@ -60,6 +62,11 @@ export default function TareasPage() {
       if (resIntegrantes.ok) {
         const dataIntegrantes = await resIntegrantes.json();
         setIntegrantes(dataIntegrantes.integrantes || []);
+      }
+
+      if (resUsuario.ok) {
+        const dataUsuario = await resUsuario.json();
+        setEsAdmin(dataUsuario.usuario?.rol === "admin");
       }
 
       setError("");
@@ -272,17 +279,19 @@ export default function TareasPage() {
                       ))}
                     </select>
 
-                    <button
-                      type="button"
-                      className={styles.iconButton}
-                      onClick={() => eliminarTarea(tarea)}
-                      aria-label={`Eliminar tarea ${tarea.titulo}`}
-                      title="Eliminar tarea"
-                    >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </button>
+                    {esAdmin && (
+                      <button
+                        type="button"
+                        className={styles.iconButton}
+                        onClick={() => eliminarTarea(tarea)}
+                        aria-label={`Eliminar tarea ${tarea.titulo}`}
+                        title="Eliminar tarea (solo administradores)"
+                      >
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2m2 0-1 13a1 1 0 0 1-1 1H8a1 1 0 0 1-1-1L6 7" strokeLinecap="round" strokeLinejoin="round" />
+                        </svg>
+                      </button>
+                    )}
                   </div>
                 </div>
 

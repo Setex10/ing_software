@@ -11,7 +11,7 @@ import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import styles from "./login.module.css";
 
-export default function LoginForm({ credencialesDemo }) {
+export default function LoginForm({ credencialesDemo, credencialesDemoUsuario }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const destino = searchParams.get("from") || "/proyectos";
@@ -67,9 +67,13 @@ export default function LoginForm({ credencialesDemo }) {
       <div className={styles.card}>
         <h1 className={styles.title}>Iniciar sesión</h1>
         <p className={styles.hint}>
-          Login simulado (sin base de datos real). Usuario de prueba:{" "}
-          <strong>{credencialesDemo.email}</strong> /{" "}
+          Login simulado (sin base de datos real). Usuarios de prueba:
+          <br />
+          Admin: <strong>{credencialesDemo.email}</strong> /{" "}
           <strong>{credencialesDemo.password}</strong>
+          <br />
+          Usuario: <strong>{credencialesDemoUsuario.email}</strong> /{" "}
+          <strong>{credencialesDemoUsuario.password}</strong>
         </p>
 
         {error && <p className={styles.error}>{error}</p>}
