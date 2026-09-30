@@ -1,8 +1,9 @@
 // app/api/auth/login/route.js
 //
-// Login simulado: valida las credenciales contra el usuario de prueba
-// definido en lib/authUsers.js (no hay base de datos), y si son correctas
-// firma un JWT y lo guarda en una cookie httpOnly.
+// Login simulado: valida las credenciales contra los usuarios de prueba
+// definidos en lib/authUsers.js (no hay base de datos), aplica un límite de
+// intentos fallidos (lib/loginRateLimit.js) y, si son correctas, firma un
+// JWT y lo guarda en una cookie httpOnly.
 
 import { NextResponse } from "next/server";
 import { buscarUsuarioPorEmail, verificarPassword } from "@/lib/authUsers";
@@ -11,6 +12,7 @@ import {
   SESSION_COOKIE_NAME,
   SESSION_MAX_AGE_SECONDS,
 } from "@/lib/auth";
+import { estaBloqueado, registrarIntentoFallido, limpiarIntentos } from "@/lib/loginRateLimit";
 
 export async function POST(request) {
   let body;
@@ -33,19 +35,34 @@ export async function POST(request) {
     );
   }
 
+  const bloqueo = estaBloqueado(email);
+  if (bloqueo.bloqueado) {
+    return NextResponse.json(
+      {
+        error: `Demasiados intentos fallidos. Vuelve a intentar en ${Math.ceil(
+          bloqueo.segundosRestantes / 60
+        )} minuto(s).`,
+      },
+      { status: 429 }
+    );
+  }
+
   const usuario = buscarUsuarioPorEmail(email);
 
   if (!usuario || !verificarPassword(usuario, password)) {
+    registrarIntentoFallido(email);
     return NextResponse.json(
       { error: "Correo o contraseña incorrectos." },
       { status: 401 }
     );
   }
 
+  limpiarIntentos(email);
+
   const token = crearTokenSesion(usuario);
 
   const response = NextResponse.json({
-    usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email },
+    usuario: { id: usuario.id, nombre: usuario.nombre, email: usuario.email, rol: usuario.rol },
   });
 
   response.cookies.set(SESSION_COOKIE_NAME, token, {

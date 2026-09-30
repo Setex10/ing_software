@@ -4,7 +4,7 @@
 // (services). No contiene queries ni reglas de negocio.
 
 import { NextResponse } from "next/server";
-import { getAuthUser } from "@/lib/auth";
+import { getAuthUser, esAdmin } from "@/lib/auth";
 import {
   crearTareaParaProyecto,
   listarTareasDeProyecto,
@@ -92,12 +92,22 @@ export async function handleUpdateTask(request, proyectoId, tareaId) {
 
 /**
  * DELETE /api/projects/:id/tasks/:taskId
+ *
+ * Restringido a usuarios con rol "admin": eliminar una tarea es una acción
+ * destructiva que, en este sistema, solo el rol administrador puede hacer.
  */
 export async function handleDeleteTask(request, proyectoId, tareaId) {
   const user = getAuthUser(request);
 
   if (!user) {
     return NextResponse.json({ error: "No autenticado." }, { status: 401 });
+  }
+
+  if (!esAdmin(user)) {
+    return NextResponse.json(
+      { error: "Solo un usuario con rol de administrador puede eliminar tareas." },
+      { status: 403 }
+    );
   }
 
   const result = await eliminarTareaDeProyecto(user.userId, proyectoId, tareaId);
